@@ -45,6 +45,10 @@ rustPlatform.buildRustPackage rec {
     allowBuiltinFetchGit = true;
   };
 
+  patches = [
+    ./anchor-cli.patch
+  ];
+
   buildAndTestSubdir = "cli";
 
   # Ensure anchor has access to Solana's cargo and rust binaries
