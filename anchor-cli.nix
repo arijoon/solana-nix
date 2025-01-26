@@ -5,14 +5,23 @@
 , libgcc
 , pkg-config
 , protobuf
-, rustPlatform
+, makeRustPlatform
 , makeWrapper
 , solana-platform-tools
+, rust-bin
 , udev
 }:
+let
+  # Anchor does not declare a rust-toolchain, so we have to do it here -- the
+  # old dependency on the `time` crate doesn't support Rust versions >= 1.80.
+  rustPlatform = makeRustPlatform {
+    cargo = rust-bin.stable."1.79.0".default;
+    rustc = rust-bin.stable."1.79.0".default;
+  };
+in
 rustPlatform.buildRustPackage rec {
   pname = "anchor-cli";
-  version = "0.29.0";
+  version = "0.30.1";
 
   doCheck = false;
 
@@ -28,7 +37,7 @@ rustPlatform.buildRustPackage rec {
     owner = "coral-xyz";
     repo = "anchor";
     rev = "v${version}";
-    hash = "sha256-mftge1idALb4vwyF8wGo6qLmrnvCBK3l+Iw7txCyhDc=";
+    hash = "sha256-3fLYTJDVCJdi6o0Zd+hb9jcPDKm4M4NzpZ8EUVW/GVw=";
   };
 
   cargoLock = {
@@ -37,11 +46,6 @@ rustPlatform.buildRustPackage rec {
   };
 
   buildAndTestSubdir = "cli";
-
-  patches = [
-    # Set default architecture to sbf instead of bpf
-    ./anchor-cli.patch
-  ];
 
   # Ensure anchor has access to Solana's cargo and rust binaries
   postInstall = ''

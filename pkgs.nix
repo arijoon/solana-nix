@@ -5,6 +5,7 @@
 }:
 let
   nixpkgs = sources.nixpkgs;
+  rust_overlay = import (sources.rust_overlay);
 
   overlays = [
     (self: super: {
@@ -16,6 +17,7 @@ let
       anchor-cli = self.callPackage (import ./anchor-cli.nix) { };
     }
     )
+    rust_overlay
   ];
 in
 import nixpkgs { inherit config system overlays; }

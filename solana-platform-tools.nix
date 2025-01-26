@@ -4,8 +4,8 @@
  , fetchzip
  , lib
  , libclang
- , openssl
- , python38
+ , libedit
+ , python310
  , solana-source
  , udev
  , xz
@@ -13,8 +13,8 @@
  , system ? builtins.currentSystem
  }:
 let
-  version = "v1.37";
-  sha256 = "sha256-llKrtYIxM8YvIiJZauYdVIV4XISS7Jk4EZ/H4bCbfN4=";
+  version = "v1.43";
+  sha256 = "GhMnfjKNJXpVqT1CZE0Zyp4+NXJG41sUxwHye9DGPt0=";
 in
 stdenv.mkDerivation rec {
   pname = "solana-platform-tools";
@@ -29,7 +29,7 @@ stdenv.mkDerivation rec {
       };
     in
     fetchzip {
-      url = "https://github.com/solana-labs/platform-tools/releases/download/${version}/platform-tools-${systemMapping."${system}"}.tar.bz2";
+      url = "https://github.com/anza-xyz/platform-tools/releases/download/${version}/platform-tools-${systemMapping."${system}"}.tar.bz2";
       inherit sha256;
       stripRoot = false;
     };
@@ -40,20 +40,20 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     # Auto patching
+    libedit
     zlib
     stdenv.cc.cc
-    openssl
     libclang.lib
     xz
-    python38
+    python310
   ] ++ lib.optionals stdenv.isLinux [ udev ];
 
   installPhase = ''
     platformtools=$out/bin/sdk/sbf/dependencies/platform-tools
     mkdir -p $platformtools
-    cp -r $src/llvm $platformtools;
+    cp -r $src/llvm $platformtools
     cp -r $src/rust $platformtools
-    chmod 0755 -R $out;
+    chmod 0755 -R $out
     touch $platformtools-${version}.md
 
     # Criterion is also needed
@@ -67,9 +67,13 @@ stdenv.mkDerivation rec {
     cp -ar ${solana-source.src}/sdk/sbf/* $out/bin/sdk/sbf/
   '';
 
+  # A bit ugly, but liblldb.so uses libedit.so.2 and nix provides libedit.so
+  postFixup = ''
+    patchelf --replace-needed libedit.so.2 libedit.so $out/bin/sdk/sbf/dependencies/platform-tools/llvm/lib/liblldb.so.18.1.7-rust-dev
+  '';
 
   meta = with lib; {
-    description = "Solana SDK";
+    description = "Solana Platform Tools";
     homepage = "https://solana.com";
     platforms = platforms.linux;
   };

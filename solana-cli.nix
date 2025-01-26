@@ -9,7 +9,7 @@
  , udev
  , protobuf
  , libcxx
- , rocksdb
+ , rocksdb_8_11
  , snappy
  , pkg-config
  , makeWrapper
@@ -19,30 +19,25 @@
  , nix-update-script
    # Taken from https://github.com/solana-labs/solana/blob/master/scripts/cargo-install-all.sh#L84
  , solanaPkgs ? [
+     "agave-install"
+     "agave-install-init"
+     "agave-ledger-tool"
+     "agave-validator"
+     "agave-watchtower"
+     "cargo-build-sbf"
+     "cargo-test-sbf"
+     "rbpf-cli"
      "solana"
      "solana-bench-tps"
      "solana-faucet"
      "solana-gossip"
-     "solana-install"
      "solana-keygen"
      "solana-log-analyzer"
      "solana-net-shaper"
-     "rbpf-cli"
-     "solana-validator"
-     "solana-ledger-tool"
-     "cargo-build-bpf"
-     "cargo-test-bpf"
      "solana-dos"
-     "solana-install-init"
      "solana-stake-accounts"
      "solana-test-validator"
      "solana-tokens"
-     "solana-watchtower"
-     "cargo-test-sbf"
-     "cargo-build-sbf"
-   ] ++ [
-     # XXX: Ensure `solana-genesis` is built LAST!
-     # See https://github.com/solana-labs/solana/issues/5826
      "solana-genesis"
    ]
  }:
@@ -62,7 +57,6 @@ rustPlatform.buildRustPackage rec {
     lockFile = "${src.outPath}/Cargo.lock";
     outputHashes = {
       "crossbeam-epoch-0.9.5" = "sha256-Jf0RarsgJiXiZ+ddy0vp4jQ59J9m0k3sgXhWhCdhgws=";
-      "tokio-1.29.1" = "sha256-Z/kewMCqkPVTXdoBcSaFKG5GSQAdkdpj3mAzLLCjjGk=";
     };
   };
 
@@ -94,9 +88,8 @@ rustPlatform.buildRustPackage rec {
 # wrapProgram $out/bin/tailscaled --prefix PATH : ${pkgs.lib.makeBinPath
 
   postInstall = ''
-    mkdir -p $out/bin/sdk/bpf
-    cp -a ./sdk/bpf/* $out/bin/sdk/bpf/
-    cp -a ./sdk/sbf $out/bin/sdk/sbf
+    mkdir -p $out/bin/sdk/sbf
+    cp -a ./sdk/sbf/* $out/bin/sdk/sbf/
 
     rust=${solana-platform-tools}/bin/sdk/sbf/dependencies/platform-tools/rust/bin
     sbfsdkdir=${solana-platform-tools}/bin/sdk/sbf
@@ -107,8 +100,8 @@ rustPlatform.buildRustPackage rec {
 
   # Used by build.rs in the rocksdb-sys crate. If we don't set these, it would
   # try to build RocksDB from source.
-  ROCKSDB_LIB_DIR = "${rocksdb}/lib";
-  ROCKSDB_INCLUDE_DIR = "${rocksdb}/include";
+  ROCKSDB_LIB_DIR = "${rocksdb_8_11}/lib";
+  ROCKSDB_INCLUDE_DIR = "${rocksdb_8_11}/include";
 
   # Require this on darwin otherwise the compiler starts rambling about missing
   # cmath functions
