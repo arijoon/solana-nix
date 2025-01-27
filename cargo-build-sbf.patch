@@ -1,8 +1,8 @@
 diff --git a/sdk/cargo-build-sbf/src/main.rs b/sdk/cargo-build-sbf/src/main.rs
-index 1a9e4e1b62..3cb0f2af4f 100644
+index 03bfce2cab..0485721b4a 100644
 --- a/sdk/cargo-build-sbf/src/main.rs
 +++ b/sdk/cargo-build-sbf/src/main.rs
-@@ -4,7 +4,6 @@ use {
+@@ -5,7 +5,6 @@ use {
      itertools::Itertools,
      log::*,
      regex::Regex,
@@ -10,7 +10,7 @@ index 1a9e4e1b62..3cb0f2af4f 100644
      solana_sdk::signature::{write_keypair_file, Keypair},
      std::{
          borrow::Cow,
-@@ -233,95 +232,12 @@ fn make_platform_tools_path_for_version(package: &str, version: &str) -> PathBuf
+@@ -255,96 +254,13 @@ fn make_platform_tools_path_for_version(package: &str, version: &str) -> PathBuf
  
  // Check whether a package is installed and install it if missing.
  fn install_if_missing(
@@ -18,11 +18,13 @@ index 1a9e4e1b62..3cb0f2af4f 100644
 -    package: &str,
 -    url: &str,
 -    download_file_name: &str,
+-    platform_tools_version: &str,
 -    target_path: &Path,
 +    _config: &Config,
 +    _package: &str,
 +    _url: &str,
 +    _download_file_name: &str,
++    _platform_tools_version: &str,
 +    _target_path: &Path,
  ) -> Result<(), String> {
 -    if config.force_tools_install {
@@ -69,7 +71,7 @@ index 1a9e4e1b62..3cb0f2af4f 100644
 -        fs::create_dir_all(target_path).map_err(|err| err.to_string())?;
 -        let mut url = String::from(url);
 -        url.push('/');
--        url.push_str(config.platform_tools_version);
+-        url.push_str(platform_tools_version);
 -        url.push('/');
 -        url.push_str(download_file_name);
 -        let download_file_path = target_path.join(download_file_name);
@@ -111,7 +113,7 @@ index 1a9e4e1b62..3cb0f2af4f 100644
      Ok(())
  }
  
-@@ -634,7 +550,6 @@ fn build_solana_package(
+@@ -680,7 +596,6 @@ fn build_solana_package(
          error!("Failed to install platform-tools: {}", err);
          exit(1);
      });
@@ -119,7 +121,7 @@ index 1a9e4e1b62..3cb0f2af4f 100644
  
      let llvm_bin = config
          .sbf_sdk
-@@ -692,7 +607,6 @@ fn build_solana_package(
+@@ -738,7 +653,6 @@ fn build_solana_package(
  
      let cargo_build = PathBuf::from("cargo");
      let mut cargo_build_args = vec![
