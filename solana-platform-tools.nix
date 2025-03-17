@@ -13,8 +13,8 @@
  , system ? builtins.currentSystem
  }:
 let
-  version = "v1.43";
-  sha256 = "GhMnfjKNJXpVqT1CZE0Zyp4+NXJG41sUxwHye9DGPt0=";
+  version = "v1.45";
+  sha256 = "QGm7mOd3UnssYhPt8RSSRiS5LiddkXuDtWuakpak0Y0=";
 in
 stdenv.mkDerivation rec {
   pname = "solana-platform-tools";
@@ -49,7 +49,7 @@ stdenv.mkDerivation rec {
   ] ++ lib.optionals stdenv.isLinux [ udev ];
 
   installPhase = ''
-    platformtools=$out/bin/sdk/sbf/dependencies/platform-tools
+    platformtools=$out/bin/platform-tools-sdk/sbf/dependencies/platform-tools
     mkdir -p $platformtools
     cp -r $src/llvm $platformtools
     cp -r $src/rust $platformtools
@@ -57,19 +57,19 @@ stdenv.mkDerivation rec {
     touch $platformtools-${version}.md
 
     # Criterion is also needed
-    criterion=$out/bin/sdk/sbf/dependencies/criterion
+    criterion=$out/bin/platform-tools-sdk/sbf/dependencies/criterion
     mkdir $criterion
     ln -s ${criterion.dev}/include $criterion/include
     ln -s ${criterion}/lib $criterion/lib
     ln -s ${criterion}/share $criterion/share
     touch $criterion-v${criterion.version}.md
 
-    cp -ar ${solana-source.src}/sdk/sbf/* $out/bin/sdk/sbf/
+    cp -ar ${solana-source.src}/platform-tools-sdk/sbf/* $out/bin/platform-tools-sdk/sbf/
   '';
 
   # A bit ugly, but liblldb.so uses libedit.so.2 and nix provides libedit.so
   postFixup = ''
-    patchelf --replace-needed libedit.so.2 libedit.so $out/bin/sdk/sbf/dependencies/platform-tools/llvm/lib/liblldb.so.18.1.7-rust-dev
+    patchelf --replace-needed libedit.so.2 libedit.so $out/bin/platform-tools-sdk/sbf/dependencies/platform-tools/llvm/lib/liblldb.so.18.1.7-rust-dev
   '';
 
   meta = with lib; {

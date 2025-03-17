@@ -1,6 +1,7 @@
 # https://github.com/NixOS/nixpkgs/blob/nixos-23.11/pkgs/applications/blockchains/solana/default.nix
 ({ stdenv
- , rustPlatform
+ , makeRustPlatform
+ , rust-bin
  , fetchFromGitHub
  , lib
  , libgcc
@@ -44,6 +45,12 @@
 let
   version = solana-source.version;
 
+  # nixpkgs 24.11 defaults to Rust v1.82.0, but Agave uses Rust v1.84.1
+  rustPlatform = makeRustPlatform {
+    cargo = rust-bin.stable."1.84.1".default;
+    rustc = rust-bin.stable."1.84.1".default;
+  };
+
   inherit (darwin.apple_sdk_11_0) Libsystem;
   inherit (darwin.apple_sdk_11_0.frameworks) System IOKit AppKit Security;
 in
@@ -59,10 +66,6 @@ rustPlatform.buildRustPackage rec {
       "crossbeam-epoch-0.9.5" = "sha256-Jf0RarsgJiXiZ+ddy0vp4jQ59J9m0k3sgXhWhCdhgws=";
     };
   };
-
-  patches = [
-    ./cargo-build-sbf.patch
-  ];
 
   strictDeps = true;
   cargoBuildFlags = builtins.map (n: "--bin=${n}") solanaPkgs;
@@ -88,11 +91,11 @@ rustPlatform.buildRustPackage rec {
 # wrapProgram $out/bin/tailscaled --prefix PATH : ${pkgs.lib.makeBinPath
 
   postInstall = ''
-    mkdir -p $out/bin/sdk/sbf
-    cp -a ./sdk/sbf/* $out/bin/sdk/sbf/
+    mkdir -p $out/bin/platform-tools-sdk/sbf
+    cp -a ./platform-tools-sdk/sbf/* $out/bin/platform-tools-sdk/sbf/
 
-    rust=${solana-platform-tools}/bin/sdk/sbf/dependencies/platform-tools/rust/bin
-    sbfsdkdir=${solana-platform-tools}/bin/sdk/sbf
+    rust=${solana-platform-tools}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
+    sbfsdkdir=${solana-platform-tools}/bin/platform-tools-sdk/sbf
     wrapProgram $out/bin/cargo-build-sbf \
       --prefix PATH : "$rust" \
       --set SBF_SDK_PATH "$sbfsdkdir"

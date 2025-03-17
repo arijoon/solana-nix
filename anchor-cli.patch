@@ -1,28 +1,49 @@
+diff --git a/cli/src/lib.rs b/cli/src/lib.rs
+index 3404b032..4d87ed96 100644
+--- a/cli/src/lib.rs
++++ b/cli/src/lib.rs
+@@ -1821,6 +1821,8 @@ fn docker_build_bpf(
+             container_name,
+             "cargo",
+             subcommand,
++            "--skip-tools-install",
++            "--no-rustup-override",
+             "--manifest-path",
+             &manifest_path.display().to_string(),
+         ])
+@@ -1923,6 +1925,8 @@ fn _build_rust_cwd(
+ ) -> Result<()> {
+     let exit = std::process::Command::new("cargo")
+         .arg(arch.build_subcommand())
++        .arg("--skip-tools-install")
++        .arg("--no-rustup-override")
+         .args(cargo_args.clone())
+         .stdout(Stdio::inherit())
+         .stderr(Stdio::inherit())
 diff --git a/idl/src/build.rs b/idl/src/build.rs
-index 96dc3db2..1b098718 100644
+index ccd89745..2d679123 100644
 --- a/idl/src/build.rs
 +++ b/idl/src/build.rs
-@@ -60,16 +60,8 @@ pub fn build_idl(
-
- /// Build IDL.
- fn build(program_path: &Path, resolution: bool, skip_lint: bool, no_docs: bool) -> Result<Idl> {
+@@ -138,15 +138,8 @@ fn build(
+     no_docs: bool,
+     cargo_args: &[String],
+ ) -> Result<Idl> {
 -    // `nightly` toolchain is currently required for building the IDL.
 -    let toolchain = std::env::var("RUSTUP_TOOLCHAIN")
 -        .map(|toolchain| format!("+{}", toolchain))
 -        .unwrap_or_else(|_| "+nightly".to_string());
 -
 -    install_toolchain_if_needed(&toolchain)?;
--
      let output = Command::new("cargo")
          .args([
 -            &toolchain,
              "test",
              "__anchor_private_print_idl",
              "--features",
-@@ -202,23 +194,6 @@ fn build(program_path: &Path, resolution: bool, skip_lint: bool, no_docs: bool)
+@@ -283,23 +276,6 @@ fn build(
      idl.ok_or_else(|| anyhow!("IDL doesn't exist"))
  }
-
+ 
 -/// Install the given toolchain if it's not already installed.
 -fn install_toolchain_if_needed(toolchain: &str) -> Result<()> {
 -    let is_installed = Command::new("cargo")
@@ -43,3 +64,11 @@ index 96dc3db2..1b098718 100644
  /// Convert paths to name if there are no conflicts.
  fn convert_module_paths(idl: Idl) -> Idl {
      let idl = serde_json::to_string(&idl).unwrap();
+diff --git a/rust-toolchain.toml b/rust-toolchain.toml
+new file mode 100644
+index 00000000..c1bc0a69
+--- /dev/null
++++ b/rust-toolchain.toml
+@@ -0,0 +1,2 @@
++[toolchain]
++channel = "1.85.0"
