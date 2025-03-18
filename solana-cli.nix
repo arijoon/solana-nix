@@ -99,8 +99,8 @@ rustPlatform.buildRustPackage rec {
     wrapProgram $out/bin/cargo-build-sbf \
       --prefix PATH : "$rust" \
       --set SBF_SDK_PATH "$sbfsdkdir" \
-      --add-flags --no-rustup-override \
-      --add-flags --skip-tools-install
+      --append-flags --no-rustup-override \
+      --append-flags --skip-tools-install
   '';
 
   # Used by build.rs in the rocksdb-sys crate. If we don't set these, it would
