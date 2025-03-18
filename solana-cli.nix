@@ -98,7 +98,9 @@ rustPlatform.buildRustPackage rec {
     sbfsdkdir=${solana-platform-tools}/bin/platform-tools-sdk/sbf
     wrapProgram $out/bin/cargo-build-sbf \
       --prefix PATH : "$rust" \
-      --set SBF_SDK_PATH "$sbfsdkdir"
+      --set SBF_SDK_PATH "$sbfsdkdir" \
+      --add-flags --no-rustup-override \
+      --add-flags --skip-tools-install
   '';
 
   # Used by build.rs in the rocksdb-sys crate. If we don't set these, it would
