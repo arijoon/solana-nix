@@ -6,7 +6,6 @@ pkgs.mkShell {
     anchor-cli
     solana-cli
     solana-rust
-
     yarn
     nodejs
   ];

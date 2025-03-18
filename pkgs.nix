@@ -9,7 +9,6 @@ let
 
   overlays = [
     (self: super: {
-      criterion = self.callPackage (import ./criterion.nix) { criterion = super.criterion; };
       solana-source = self.callPackage (import ./solana-source.nix) { };
       solana-platform-tools = self.callPackage (import ./solana-platform-tools.nix) { };
       solana-rust = self.callPackage (import ./solana-rust.nix) { };

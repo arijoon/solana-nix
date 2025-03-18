@@ -14,7 +14,7 @@
  }:
 let
   version = "v1.45";
-  sha256 = "QGm7mOd3UnssYhPt8RSSRiS5LiddkXuDtWuakpak0Y0=";
+  sha256 = "sha256-aJjYD4vhsLcBMAC8hXrecrMvyzbkas9VNF9nnNxtbiE=";
 in
 stdenv.mkDerivation rec {
   pname = "solana-platform-tools";
@@ -23,9 +23,12 @@ stdenv.mkDerivation rec {
   src =
     let
       # The system string is inverted
-      # TODO add darwin equivalent here
       systemMapping = {
         x86_64-linux = "linux-x86_64";
+        aarch64-linux = "linux-aarch64";
+        x86_64-darwin = "osx-x86_64";
+        aarch64-darwin = "osx-aarch64";
+        x86_64-windows = "windows-x86_64";
       };
     in
     fetchzip {
@@ -36,7 +39,7 @@ stdenv.mkDerivation rec {
 
   doCheck = false;
 
-  nativeBuildInputs = [ autoPatchelfHook ];
+  nativeBuildInputs = lib.optionals stdenv.isLinux [ autoPatchelfHook ];
 
   buildInputs = [
     # Auto patching
@@ -68,13 +71,13 @@ stdenv.mkDerivation rec {
   '';
 
   # A bit ugly, but liblldb.so uses libedit.so.2 and nix provides libedit.so
-  postFixup = ''
+  postFixup = lib.optionals stdenv.isLinux ''
     patchelf --replace-needed libedit.so.2 libedit.so $out/bin/platform-tools-sdk/sbf/dependencies/platform-tools/llvm/lib/liblldb.so.18.1.7-rust-dev
   '';
 
   meta = with lib; {
     description = "Solana Platform Tools";
     homepage = "https://solana.com";
-    platforms = platforms.linux;
+    platforms = platforms.aarch64 ++ platforms.unix;
   };
 })
