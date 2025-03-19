@@ -1,9 +1,4 @@
-{ lib
-, fetchFromGitHub
-, cmake
-, pkg-config
-, criterion
-}:
+{ lib, fetchFromGitHub, cmake, pkg-config, criterion }:
 criterion.overrideAttrs rec {
   version = "2.3.3";
 

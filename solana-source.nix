@@ -1,11 +1,8 @@
-{ stdenv
-, fetchFromGitHub
-}:
+{ stdenv, fetchFromGitHub }:
 let
   version = "2.2.3";
   sha256 = "sha256-nRCamrwzoPX0cAEcP6p0t0t9Q41RjM6okupOPkJH5lQ=";
-in
-{
+in {
   inherit version;
   src = fetchFromGitHub {
     owner = "anza-xyz";

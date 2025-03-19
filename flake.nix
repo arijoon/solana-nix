@@ -17,21 +17,26 @@
         "aarch64-darwin"
         "x86_64-windows"
       ];
-      perSystem = { config, self', inputs', nixpkgs', rust-overlay', system }:
-        with import nixpkgs' {
-          overlays = [ rust-overlay'.overlays.default ./pkgs ];
+      perSystem = { config, self', inputs', pkgs, system, ... }:
+        with import nixpkgs {
+          inherit system;
+          overlays = [ rust-overlay.overlays.default ];
         };
         let
-          solana-source = self.callPackage (import ./solana-source.nix) { };
+          solana-source = callPackage (import ./solana-source.nix) { };
           solana-platform-tools =
-            self.callPackage (import ./solana-platform-tools.nix) {
+            callPackage (import ./solana-platform-tools.nix) {
               inherit solana-source;
             };
-          solana-rust = self.callPackage (import ./solana-rust.nix) {
+          solana-rust = callPackage (import ./solana-rust.nix) {
             inherit solana-platform-tools;
           };
-          solana-cli = self.callPackage (import ./solana-cli.nix) { };
-          anchor-cli = self.callPackage (import ./anchor-cli.nix) { };
+          solana-cli = callPackage (import ./solana-cli.nix) {
+            inherit solana-platform-tools solana-source;
+          };
+          anchor-cli = callPackage (import ./anchor-cli.nix) {
+            inherit solana-platform-tools;
+          };
         in {
           devShells.default = mkShell {
             packages = [ anchor-cli solana-cli solana-rust yarn nodejs ];
