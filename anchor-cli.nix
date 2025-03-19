@@ -46,6 +46,10 @@ rustPlatform.buildRustPackage rec {
     allowBuiltinFetchGit = true;
   };
 
+  patches = [
+    ./anchor-cli.patch
+  ];
+
   buildAndTestSubdir = "cli";
 
   meta = {

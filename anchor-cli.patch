@@ -1,0 +1,153 @@
+diff --git a/cli/src/lib.rs b/cli/src/lib.rs
+index 3404b032..34b08dac 100644
+--- a/cli/src/lib.rs
++++ b/cli/src/lib.rs
+@@ -11,7 +11,6 @@ use anchor_lang_idl::types::{Idl, IdlArrayLen, IdlDefinedFields, IdlType, IdlTyp
+ use anyhow::{anyhow, Context, Result};
+ use checks::{check_anchor_version, check_deps, check_idl_build_feature, check_overflow};
+ use clap::{CommandFactory, Parser};
+-use dirs::home_dir;
+ use flate2::read::GzDecoder;
+ use flate2::read::ZlibDecoder;
+ use flate2::write::{GzEncoder, ZlibEncoder};
+@@ -552,7 +551,7 @@ type RestoreToolchainCallbacks = Vec<Box<dyn FnOnce() -> Result<()>>>;
+ ///
+ /// Returns the previous versions to restore back to.
+ fn override_toolchain(cfg_override: &ConfigOverride) -> Result<RestoreToolchainCallbacks> {
+-    let mut restore_cbs: RestoreToolchainCallbacks = vec![];
++    let restore_cbs: RestoreToolchainCallbacks = vec![];
+ 
+     let cfg = Config::discover(cfg_override)?;
+     if let Some(cfg) = cfg {
+@@ -584,88 +583,7 @@ fn override_toolchain(cfg_override: &ConfigOverride) -> Result<RestoreToolchainC
+         if let Some(solana_version) = &cfg.toolchain.solana_version {
+             let current_version = get_current_version("solana")?;
+             if solana_version != &current_version {
+-                // We are overriding with `solana-install` command instead of using the binaries
+-                // from `~/.local/share/solana/install/releases` because we use multiple Solana
+-                // binaries in various commands.
+-                fn override_solana_version(version: String) -> Result<bool> {
+-                    // There is a deprecation warning message starting with `1.18.19` which causes
+-                    // parsing problems https://github.com/coral-xyz/anchor/issues/3147
+-                    let (cmd_name, domain) =
+-                        if Version::parse(&version)? < Version::parse("1.18.19")? {
+-                            ("solana-install", "solana.com")
+-                        } else {
+-                            ("agave-install", "anza.xyz")
+-                        };
+-
+-                    // Install the command if it's not installed
+-                    if get_current_version(cmd_name).is_err() {
+-                        // `solana-install` and `agave-install` are not usable at the same time i.e.
+-                        // using one of them makes the other unusable with the default installation,
+-                        // causing the installation process to run each time users switch between
+-                        // `agave` supported versions. For example, if the user's active Solana
+-                        // version is `1.18.17`, and he specifies `solana_version = "2.0.6"`, this
+-                        // code path will run each time an Anchor command gets executed.
+-                        eprintln!(
+-                            "Command not installed: `{cmd_name}`. \
+-                            See https://github.com/anza-xyz/agave/wiki/Agave-Transition, \
+-                            installing..."
+-                        );
+-                        let install_script = std::process::Command::new("curl")
+-                            .args([
+-                                "-sSfL",
+-                                &format!("https://release.{domain}/v{version}/install"),
+-                            ])
+-                            .output()?;
+-                        let is_successful = std::process::Command::new("sh")
+-                            .args(["-c", std::str::from_utf8(&install_script.stdout)?])
+-                            .spawn()?
+-                            .wait_with_output()?
+-                            .status
+-                            .success();
+-                        if !is_successful {
+-                            return Err(anyhow!("Failed to install `{cmd_name}`"));
+-                        }
+-                    }
+-
+-                    let output = std::process::Command::new(cmd_name).arg("list").output()?;
+-                    if !output.status.success() {
+-                        return Err(anyhow!("Failed to list installed `solana` versions"));
+-                    }
+-
+-                    // Hide the installation progress if the version is already installed
+-                    let is_installed = std::str::from_utf8(&output.stdout)?
+-                        .lines()
+-                        .filter_map(parse_version)
+-                        .any(|line_version| line_version == version);
+-                    let (stderr, stdout) = if is_installed {
+-                        (Stdio::null(), Stdio::null())
+-                    } else {
+-                        (Stdio::inherit(), Stdio::inherit())
+-                    };
+-
+-                    std::process::Command::new(cmd_name)
+-                        .arg("init")
+-                        .arg(&version)
+-                        .stderr(stderr)
+-                        .stdout(stdout)
+-                        .spawn()?
+-                        .wait()
+-                        .map(|status| status.success())
+-                        .map_err(|err| anyhow!("Failed to run `{cmd_name}` command: {err}"))
+-                }
+-
+-                match override_solana_version(solana_version.to_owned())? {
+-                    true => restore_cbs.push(Box::new(|| {
+-                        match override_solana_version(current_version)? {
+-                            true => Ok(()),
+-                            false => Err(anyhow!("Failed to restore `solana` version")),
+-                        }
+-                    })),
+-                    false => eprintln!(
+-                        "Failed to override `solana` version to {solana_version}, \
+-                        using {current_version} instead"
+-                    ),
+-                }
++                return Err(anyhow!("Current Solana version `{current_version}` does not match configured version `{solana_version}`"));
+             }
+         }
+ 
+@@ -688,40 +606,7 @@ fn override_toolchain(cfg_override: &ConfigOverride) -> Result<RestoreToolchainC
+                 .unwrap_or(VERSION)
+                 .to_owned();
+             if anchor_version != &current_version {
+-                let binary_path = home_dir()
+-                    .unwrap()
+-                    .join(".avm")
+-                    .join("bin")
+-                    .join(format!("{ANCHOR_BINARY_PREFIX}{anchor_version}"));
+-
+-                if !binary_path.exists() {
+-                    eprintln!(
+-                        "`anchor` {anchor_version} is not installed with `avm`. Installing...\n"
+-                    );
+-
+-                    let exit_status = std::process::Command::new("avm")
+-                        .arg("install")
+-                        .arg(anchor_version)
+-                        .spawn()?
+-                        .wait()?;
+-                    if !exit_status.success() {
+-                        eprintln!(
+-                            "Failed to install `anchor` {anchor_version}, \
+-                            using {current_version} instead"
+-                        );
+-
+-                        return Ok(restore_cbs);
+-                    }
+-                }
+-
+-                let exit_code = std::process::Command::new(binary_path)
+-                    .args(std::env::args_os().skip(1))
+-                    .spawn()?
+-                    .wait()?
+-                    .code()
+-                    .unwrap_or(1);
+-                restore_toolchain(restore_cbs)?;
+-                std::process::exit(exit_code);
++                return Err(anyhow!("Current Anchor version `{current_version}` does not match configured version `{anchor_version}`"));
+             }
+         }
+     }
