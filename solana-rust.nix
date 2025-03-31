@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
 
   installPhase = ''
     mkdir -p $out/bin
-    rust=${solana-platform-tools}/bin/sdk/sbf/dependencies/platform-tools/rust/bin
+    rust=${solana-platform-tools}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
     ln -s $rust/cargo $out/bin/cargo
     ln -s $rust/rustc $out/bin/rustc
   '';

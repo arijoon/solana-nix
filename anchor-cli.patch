@@ -151,3 +151,52 @@ index 3404b032..34b08dac 100644
              }
          }
      }
+diff --git a/idl/src/build.rs b/idl/src/build.rs
+index ccd89745..a4edf8a5 100644
+--- a/idl/src/build.rs
++++ b/idl/src/build.rs
+@@ -138,15 +138,12 @@ fn build(
+     no_docs: bool,
+     cargo_args: &[String],
+ ) -> Result<Idl> {
+-    // `nightly` toolchain is currently required for building the IDL.
+-    let toolchain = std::env::var("RUSTUP_TOOLCHAIN")
+-        .map(|toolchain| format!("+{}", toolchain))
+-        .unwrap_or_else(|_| "+nightly".to_string());
+-
+-    install_toolchain_if_needed(&toolchain)?;
+-    let output = Command::new("cargo")
++    let mut command = Command::new("cargo");
++    if let Ok(toolchain) = std::env::var("RUSTUP_TOOLCHAIN") {
++        command.arg(&format!("+{}", toolchain));
++    }
++    let output = command
+         .args([
+-            &toolchain,
+             "test",
+             "__anchor_private_print_idl",
+             "--features",
+@@ -283,23 +280,6 @@ fn build(
+     idl.ok_or_else(|| anyhow!("IDL doesn't exist"))
+ }
+ 
+-/// Install the given toolchain if it's not already installed.
+-fn install_toolchain_if_needed(toolchain: &str) -> Result<()> {
+-    let is_installed = Command::new("cargo")
+-        .arg(toolchain)
+-        .output()?
+-        .status
+-        .success();
+-    if !is_installed {
+-        Command::new("rustup")
+-            .args(["toolchain", "install", toolchain.trim_start_matches('+')])
+-            .spawn()?
+-            .wait()?;
+-    }
+-
+-    Ok(())
+-}
+-
+ /// Convert paths to name if there are no conflicts.
+ fn convert_module_paths(idl: Idl) -> Idl {
+     let idl = serde_json::to_string(&idl).unwrap();

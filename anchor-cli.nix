@@ -50,6 +50,13 @@ rustPlatform.buildRustPackage rec {
     ./anchor-cli.patch
   ];
 
+    # Ensure anchor has access to Solana's cargo and rust binaries
+  postInstall = ''
+    rust=${solana-platform-tools}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
+    wrapProgram $out/bin/anchor \
+      --prefix PATH : "$rust"
+  '';
+
   buildAndTestSubdir = "cli";
 
   meta = {
