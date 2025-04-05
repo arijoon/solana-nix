@@ -2,8 +2,8 @@
 , fetchFromGitHub
 }:
 let
-  version = "2.1.11";
-  sha256 = "Wtc5+PkuZdicreImj9n0qqk6ZVwBZSlJytO1WTMoiMw=";
+  version = "2.2.3";
+  sha256 = "sha256-nRCamrwzoPX0cAEcP6p0t0t9Q41RjM6okupOPkJH5lQ=";
 in
 {
   inherit version;
