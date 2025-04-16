@@ -8,8 +8,13 @@
     rust-overlay.url =
       "github:oxalica/rust-overlay/87f0965f9f5b13fca9f38074eee8369dc767550d";
   };
-  outputs = inputs@{ self, nixpkgs, flake-parts, rust-overlay }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
+  outputs = inputs @ {
+    self,
+    nixpkgs,
+    flake-parts,
+    rust-overlay,
+  }:
+    flake-parts.lib.mkFlake {inherit inputs;} {
       systems = [
         "x86_64-linux"
         "aarch64-linux"
@@ -17,17 +22,22 @@
         "aarch64-darwin"
         "x86_64-windows"
       ];
-      perSystem = { config, self', inputs', pkgs, system, ... }:
+      perSystem = {
+        config,
+        self',
+        inputs',
+        pkgs,
+        system,
+        ...
+      }:
         with import nixpkgs {
           inherit system;
-          overlays = [ rust-overlay.overlays.default ];
-        };
-        let
-          solana-source = callPackage (import ./solana-source.nix) { };
-          solana-platform-tools =
-            callPackage (import ./solana-platform-tools.nix) {
-              inherit solana-source;
-            };
+          overlays = [rust-overlay.overlays.default];
+        }; let
+          solana-source = callPackage (import ./solana-source.nix) {};
+          solana-platform-tools = callPackage (import ./solana-platform-tools.nix) {
+            inherit solana-source;
+          };
           solana-rust = callPackage (import ./solana-rust.nix) {
             inherit solana-platform-tools;
           };
@@ -39,7 +49,7 @@
           };
         in {
           devShells.default = mkShell {
-            packages = [ anchor-cli solana-cli solana-rust yarn nodejs ];
+            packages = [anchor-cli solana-cli solana-rust yarn nodejs];
           };
         };
     };
