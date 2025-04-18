@@ -40,6 +40,9 @@ in
 
     doCheck = false;
 
+    # https://github.com/NixOS/nixpkgs/issues/380196#issuecomment-2646189651
+    dontCheckForBrokenSymlinks = true;
+
     nativeBuildInputs = lib.optionals stdenv.isLinux [autoPatchelfHook];
 
     buildInputs =

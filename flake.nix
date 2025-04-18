@@ -1,18 +1,17 @@
 {
   description = "Solana development setup with Nix.";
   inputs = {
-    nixpkgs.url =
-      "github:nixos/nixpkgs/c5e2528c7c4ec05ce05a563e3be64f3525b278ad";
-    flake-parts.url =
-      "github:hercules-ci/flake-parts/f4330d22f1c5d2ba72d3d22df5597d123fdb60a9";
-    rust-overlay.url =
-      "github:oxalica/rust-overlay/87f0965f9f5b13fca9f38074eee8369dc767550d";
+    nixpkgs.url = "github:nixos/nixpkgs/c5e2528c7c4ec05ce05a563e3be64f3525b278ad";
+    flake-parts.url = "github:hercules-ci/flake-parts/f4330d22f1c5d2ba72d3d22df5597d123fdb60a9";
+    rust-overlay.url = "github:oxalica/rust-overlay/87f0965f9f5b13fca9f38074eee8369dc767550d";
+    crane.url = "github:ipetkov/crane";
   };
   outputs = inputs @ {
     self,
     nixpkgs,
     flake-parts,
     rust-overlay,
+    crane,
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = [
@@ -43,14 +42,18 @@
           };
           solana-cli = callPackage (import ./solana-cli.nix) {
             inherit solana-platform-tools solana-source;
+            crane = crane.mkLib pkgs;
           };
           anchor-cli = callPackage (import ./anchor-cli.nix) {
             inherit solana-platform-tools;
+            crane = crane.mkLib pkgs;
           };
         in {
           devShells.default = mkShell {
             packages = [anchor-cli solana-cli solana-rust yarn nodejs];
           };
+
+          packages = {inherit anchor-cli solana-cli solana-platform-tools solana-rust;};
         };
     };
 }
