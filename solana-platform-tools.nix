@@ -81,6 +81,9 @@ in
       patchelf --replace-needed libedit.so.2 libedit.so $out/bin/platform-tools-sdk/sbf/dependencies/platform-tools/llvm/lib/liblldb.so.18.1.7-rust-dev
     '';
 
+    # We need to preserve metadata in .rlib, which might get stripped on macOS. See https://github.com/NixOS/nixpkgs/issues/218712
+    stripExclude = ["*.rlib"];
+
     meta = with lib; {
       description = "Solana Platform Tools";
       homepage = "https://solana.com";
