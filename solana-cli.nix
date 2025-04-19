@@ -121,7 +121,9 @@ in
         sbfsdkdir=${solana-platform-tools}/bin/platform-tools-sdk/sbf
         wrapProgram $out/bin/cargo-build-sbf \
           --prefix PATH : "$rust" \
-          --set SBF_SDK_PATH "$sbfsdkdir"
+          --set SBF_SDK_PATH "$sbfsdkdir" \
+          --append-flags --no-rustup-override \
+          --append-flags --skip-tools-install
       '';
 
       meta = with lib; {
