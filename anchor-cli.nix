@@ -30,6 +30,11 @@
   commonArgs = {
     inherit pname version src;
 
+    # ensure `buildDepsOnly` builds the proper files
+    # otherwise in the final derivation we'd be using the unpatched `anchor_cli` crate
+    dummySrc = src;
+    patches = [./anchor-cli.patch];
+
     strictDeps = true;
     doCheck = false;
 
@@ -55,7 +60,6 @@ in
       '';
 
       cargoExtraArgs = "-p ${pname}";
-      patches = [./anchor-cli.patch];
 
       meta = {
         description = "Anchor cli";
