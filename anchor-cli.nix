@@ -20,20 +20,34 @@
   pname = "anchor-cli";
   version = "0.31.0";
 
-  src = fetchFromGitHub {
+  originalSrc = fetchFromGitHub {
     owner = "coral-xyz";
     repo = "anchor";
     rev = "v${version}";
     hash = "sha256-CaBVdp7RPVmzzEiVazjpDLJxEkIgy1BHCwdH2mYLbGM=";
   };
 
+  src = stdenv.mkDerivation {
+    name = "anchor-cli-patched";
+    src = originalSrc;
+
+    # Apply the patch
+    phases = ["unpackPhase" "patchPhase" "installPhase"];
+    patches = [
+      ./anchor-cli.patch # Reference to your local or fetched patch file
+    ];
+
+    # Install the patched source as an output
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out
+      cp -r ./* $out/
+      runHook postInstall
+    '';
+  };
+
   commonArgs = {
     inherit pname version src;
-
-    # ensure `buildDepsOnly` builds the proper files
-    # otherwise in the final derivation we'd be using the unpatched `anchor_cli` crate
-    dummySrc = src;
-    patches = [./anchor-cli.patch];
 
     strictDeps = true;
     doCheck = false;
