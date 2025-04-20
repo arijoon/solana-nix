@@ -14,29 +14,40 @@
   system ? builtins.currentSystem,
 }: let
   version = "v1.45";
-  sha256 = "sha256-aJjYD4vhsLcBMAC8hXrecrMvyzbkas9VNF9nnNxtbiE=";
+  # The system string is inverted, and each bundle has a different hash
+  systemMappings = {
+    x86_64-linux = {
+      system = "linux-x86_64";
+      hash = "sha256-QGm7mOd3UnssYhPt8RSSRiS5LiddkXuDtWuakpak0Y0=";
+    };
+    aarch64-linux = {
+      system = "linux-aarch64";
+      hash = "sha256-UzOekFBdjtHJzzytmkQETd6Mrb+cdAsbZBA0kzc75Ws=";
+    };
+    x86_64-darwin = {
+      sytem = "osx-x86_64";
+      hash = "sha256-EE7nVJ+8a/snx4ea7U+zexU/vTMX16WoU5Kbv5t2vN8=";
+    };
+    aarch64-darwin = {
+      system = "osx-aarch64";
+      hash = "sha256-aJjYD4vhsLcBMAC8hXrecrMvyzbkas9VNF9nnNxtbiE=";
+    };
+    x86_64-windows = {
+      system = "windows-x86_64";
+      hash = "sha256-7D7NN2tClnQ/UAwKUZEZqNVQxcKWguU3Fs1pgsC5CIk=";
+    };
+  };
+  systemMapping = systemMappings."${system}";
 in
   stdenv.mkDerivation rec {
     pname = "solana-platform-tools";
     inherit version;
 
-    src = let
-      # The system string is inverted
-      systemMapping = {
-        x86_64-linux = "linux-x86_64";
-        aarch64-linux = "linux-aarch64";
-        x86_64-darwin = "osx-x86_64";
-        aarch64-darwin = "osx-aarch64";
-        x86_64-windows = "windows-x86_64";
-      };
-    in
-      fetchzip {
-        url = "https://github.com/anza-xyz/platform-tools/releases/download/${version}/platform-tools-${
-          systemMapping."${system}"
-        }.tar.bz2";
-        inherit sha256;
-        stripRoot = false;
-      };
+    src = fetchzip {
+      url = "https://github.com/anza-xyz/platform-tools/releases/download/${version}/platform-tools-${systemMapping.system}.tar.bz2";
+      hash = systemMapping.hash;
+      stripRoot = false;
+    };
 
     doCheck = false;
 
