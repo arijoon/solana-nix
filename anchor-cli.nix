@@ -10,21 +10,33 @@
   rust-bin,
   udev,
   crane,
+  version ? "0.31.0",
 }: let
-  # Anchor does not declare a rust-toolchain, so we do it here -- the code
-  # mentions Rust 1.85.0 at https://github.com/coral-xyz/anchor/blob/c509618412e004415c7b090e469a9e4d5177f642/docs/content/docs/installation.mdx?plain=1#L31
+  pname = "anchor-cli";
+
+  versionMapping = {
+    "0.31.0" = {
+      hash = "sha256-CaBVdp7RPVmzzEiVazjpDLJxEkIgy1BHCwdH2mYLbGM=";
+      patches = [./anchor-cli.patch];
+      rust = rust-bin.stable."1.85.0".default;
+    };
+    "0.30.1" = {
+      hash = "sha256-3fLYTJDVCJdi6o0Zd+hb9jcPDKm4M4NzpZ8EUVW/GVw=";
+      patches = []; #TODO: equivalent patch for this version
+      rust = rust-bin.stable."1.78.0".default;
+    };
+  };
+  versionMap = versionMapping.${version};
+
   craneLib =
     crane.overrideToolchain
-    rust-bin.stable."1.85.0".default;
-
-  pname = "anchor-cli";
-  version = "0.31.0";
+    versionMap.rust;
 
   originalSrc = fetchFromGitHub {
     owner = "coral-xyz";
     repo = "anchor";
     rev = "v${version}";
-    hash = "sha256-CaBVdp7RPVmzzEiVazjpDLJxEkIgy1BHCwdH2mYLbGM=";
+    hash = versionMap.hash;
   };
 
   src = stdenv.mkDerivation {
@@ -33,9 +45,7 @@
 
     # Apply the patch
     phases = ["unpackPhase" "patchPhase" "installPhase"];
-    patches = [
-      ./anchor-cli.patch # Reference to your local or fetched patch file
-    ];
+    patches = versionMap.patches;
 
     # Install the patched source as an output
     installPhase = ''
