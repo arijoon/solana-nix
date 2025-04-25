@@ -14,31 +14,31 @@
 }: let
   pname = "anchor-cli";
 
-  versionMapping = {
+  versionsDeps = {
     "0.31.0" = {
       hash = "sha256-CaBVdp7RPVmzzEiVazjpDLJxEkIgy1BHCwdH2mYLbGM=";
-      patches = [./anchor-cli.patch];
       rust = rust-bin.stable."1.85.0".default;
-      platform-tools = "1.45";
+      platform-tools = solana-platform-tools.override {version = "1.45";};
+      patches = [./patches/anchor-cli/0.31.0.patch];
     };
     "0.30.1" = {
       hash = "sha256-3fLYTJDVCJdi6o0Zd+hb9jcPDKm4M4NzpZ8EUVW/GVw=";
-      patches = [./anchor-cli.0.30.1.patch]; #TODO: equivalent patch for this version
       rust = rust-bin.stable."1.78.0".default;
-      platform-tools = "1.43";
+      platform-tools = solana-platform-tools.override {version = "1.43";};
+      patches = [./patches/anchor-cli/0.30.1.patch];
     };
   };
-  versionMap = versionMapping.${version};
+  versionDeps = versionsDeps.${version};
 
   craneLib =
     crane.overrideToolchain
-    versionMap.rust;
+    versionDeps.rust;
 
   originalSrc = fetchFromGitHub {
     owner = "coral-xyz";
     repo = "anchor";
     rev = "v${version}";
-    hash = versionMap.hash;
+    hash = versionDeps.hash;
   };
 
   src = stdenv.mkDerivation {
@@ -47,7 +47,7 @@
 
     # Apply the patch
     phases = ["unpackPhase" "patchPhase" "installPhase"];
-    patches = versionMap.patches;
+    patches = versionDeps.patches;
 
     # Install the patched source as an output
     installPhase = ''
@@ -80,7 +80,7 @@ in
 
       # Ensure anchor has access to Solana's cargo and rust binaries
       postInstall = ''
-        rust=${solana-platform-tools.override {version = versionMap.platform-tools;}}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
+        rust=${versionDeps.platform-tools}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
         wrapProgram $out/bin/anchor \
           --prefix PATH : "$rust"
       '';
@@ -89,5 +89,9 @@ in
 
       meta = {
         description = "Anchor cli";
+      };
+
+      passthru = {
+        otherVersions = builtins.attrNames versionsDeps;
       };
     })

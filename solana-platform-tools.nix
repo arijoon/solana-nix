@@ -14,7 +14,7 @@
   system ? builtins.currentSystem,
   version ? "1.45",
 }: let
-  systemMappings = {
+  systemMapping = {
     x86_64-linux = "linux-x86_64";
     aarch64-linux = "linux-aarch64";
     x86_64-darwin = "osx-x86_64";
@@ -32,10 +32,14 @@
     };
     "1.43" = {
       aarch64-darwin = "sha256-rt9LEz6Dp7bkrqtP9sgkvxY8tG3hqewD3vBXmJ5KMGk=";
+      x86_64-linux = "sha256-GhMnfjKNJXpVqT1CZE0Zyp4+NXJG41sUxwHye9DGPt0=";
+      aarch64-linux = "sha256-7YSPEaVErLIpDEqHj3oRTBzcP9L8BBzz6wWxZIet9jk=";
+      x86_64-darwin = "sha256-qIx8NDM2SIaBOBkxd4jp1oo/kl2lBzEgXz4yqjRioJg=";
+      x86_64-windows = "sha256-XX593OJMboZYmvdLSwgygZ/CZVxSUMig82+a8cCF/Dw=";
     };
   };
   # The system string is inverted, and each bundle has a different hash
-  releaseSystem = systemMappings."${system}";
+  releaseSystem = systemMapping."${system}";
   releaseHash = versionMapping."${version}"."${system}";
 in
   stdenv.mkDerivation rec {
@@ -98,5 +102,9 @@ in
       description = "Solana Platform Tools";
       homepage = "https://solana.com";
       platforms = platforms.aarch64 ++ platforms.unix;
+    };
+
+    passthru = {
+      otherVersions = builtins.attrNames versionMapping;
     };
   })

@@ -48,17 +48,12 @@
             inherit solana-platform-tools;
             crane = crane.mkLib pkgs;
           };
-          anchor-cli_0_30_1 = callPackage (import ./anchor-cli.nix) {
-            inherit solana-platform-tools;
-            crane = crane.mkLib pkgs;
-            version = "0.30.1";
-          };
         in {
           devShells.default = mkShell {
             packages = [anchor-cli solana-cli solana-rust yarn nodejs];
           };
 
-          packages = {inherit anchor-cli solana-cli solana-platform-tools solana-rust anchor-cli_0_30_1;};
+          packages = {inherit anchor-cli solana-cli solana-platform-tools solana-rust;};
         };
     };
 }
