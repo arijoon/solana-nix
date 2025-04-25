@@ -19,11 +19,13 @@
       hash = "sha256-CaBVdp7RPVmzzEiVazjpDLJxEkIgy1BHCwdH2mYLbGM=";
       patches = [./anchor-cli.patch];
       rust = rust-bin.stable."1.85.0".default;
+      platform-tools = "1.45";
     };
     "0.30.1" = {
       hash = "sha256-3fLYTJDVCJdi6o0Zd+hb9jcPDKm4M4NzpZ8EUVW/GVw=";
-      patches = []; #TODO: equivalent patch for this version
+      patches = [./anchor-cli.0.30.1.patch]; #TODO: equivalent patch for this version
       rust = rust-bin.stable."1.78.0".default;
+      platform-tools = "1.43";
     };
   };
   versionMap = versionMapping.${version};
@@ -78,7 +80,7 @@ in
 
       # Ensure anchor has access to Solana's cargo and rust binaries
       postInstall = ''
-        rust=${solana-platform-tools}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
+        rust=${solana-platform-tools.override {version = versionMap.platform-tools;}}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
         wrapProgram $out/bin/anchor \
           --prefix PATH : "$rust"
       '';
