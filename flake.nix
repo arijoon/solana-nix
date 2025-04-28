@@ -38,18 +38,18 @@
           ...
         }:
         let
-          solana-source = pkgs.callPackage (import ./solana-source.nix) { };
-          solana-platform-tools = pkgs.callPackage (import ./solana-platform-tools.nix) {
+          solana-source = pkgs.callPackage ./solana-source.nix { };
+          solana-platform-tools = pkgs.callPackage ./solana-platform-tools.nix {
             inherit solana-source;
           };
-          solana-rust = pkgs.callPackage (import ./solana-rust.nix) {
+          solana-rust = pkgs.callPackage ./solana-rust.nix {
             inherit solana-platform-tools;
           };
-          solana-cli = pkgs.callPackage (import ./solana-cli.nix) {
+          solana-cli = pkgs.callPackage ./solana-cli.nix {
             inherit solana-platform-tools solana-source;
             crane = crane.mkLib pkgs;
           };
-          anchor-cli = pkgs.callPackage (import ./anchor-cli.nix) {
+          anchor-cli = pkgs.callPackage ./anchor-cli.nix {
             inherit solana-platform-tools;
             crane = crane.mkLib pkgs;
           };
