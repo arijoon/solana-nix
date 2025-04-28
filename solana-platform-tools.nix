@@ -1,53 +1,41 @@
-({
-  stdenv,
-  autoPatchelfHook,
-  criterion,
-  fetchzip,
-  lib,
-  libclang,
-  libedit,
-  python310,
-  solana-source,
-  udev,
-  xz,
-  zlib,
-  system ? builtins.currentSystem,
-  version ? "1.45",
-}: let
-  systemMapping = {
-    x86_64-linux = "linux-x86_64";
-    aarch64-linux = "linux-aarch64";
-    x86_64-darwin = "osx-x86_64";
-    aarch64-darwin = "osx-aarch64";
-    x86_64-windows = "windows-x86_64";
-  };
+({ stdenv, autoPatchelfHook, criterion, fetchzip, lib, libclang, libedit
+  , python310, solana-source, udev, xz, zlib, system ? builtins.currentSystem
+  , version ? "1.45", }:
+  let
+    systemMapping = {
+      x86_64-linux = "linux-x86_64";
+      aarch64-linux = "linux-aarch64";
+      x86_64-darwin = "osx-x86_64";
+      aarch64-darwin = "osx-aarch64";
+      x86_64-windows = "windows-x86_64";
+    };
 
-  versionMapping = {
-    "1.45" = {
-      x86_64-linux = "sha256-QGm7mOd3UnssYhPt8RSSRiS5LiddkXuDtWuakpak0Y0=";
-      aarch64-linux = "sha256-UzOekFBdjtHJzzytmkQETd6Mrb+cdAsbZBA0kzc75Ws=";
-      x86_64-darwin = "sha256-EE7nVJ+8a/snx4ea7U+zexU/vTMX16WoU5Kbv5t2vN8=";
-      aarch64-darwin = "sha256-aJjYD4vhsLcBMAC8hXrecrMvyzbkas9VNF9nnNxtbiE=";
-      x86_64-windows = "sha256-7D7NN2tClnQ/UAwKUZEZqNVQxcKWguU3Fs1pgsC5CIk=";
+    versionMapping = {
+      "1.45" = {
+        x86_64-linux = "sha256-QGm7mOd3UnssYhPt8RSSRiS5LiddkXuDtWuakpak0Y0=";
+        aarch64-linux = "sha256-UzOekFBdjtHJzzytmkQETd6Mrb+cdAsbZBA0kzc75Ws=";
+        x86_64-darwin = "sha256-EE7nVJ+8a/snx4ea7U+zexU/vTMX16WoU5Kbv5t2vN8=";
+        aarch64-darwin = "sha256-aJjYD4vhsLcBMAC8hXrecrMvyzbkas9VNF9nnNxtbiE=";
+        x86_64-windows = "sha256-7D7NN2tClnQ/UAwKUZEZqNVQxcKWguU3Fs1pgsC5CIk=";
+      };
+      "1.43" = {
+        aarch64-darwin = "sha256-rt9LEz6Dp7bkrqtP9sgkvxY8tG3hqewD3vBXmJ5KMGk=";
+        x86_64-linux = "sha256-GhMnfjKNJXpVqT1CZE0Zyp4+NXJG41sUxwHye9DGPt0=";
+        aarch64-linux = "sha256-7YSPEaVErLIpDEqHj3oRTBzcP9L8BBzz6wWxZIet9jk=";
+        x86_64-darwin = "sha256-qIx8NDM2SIaBOBkxd4jp1oo/kl2lBzEgXz4yqjRioJg=";
+        x86_64-windows = "sha256-XX593OJMboZYmvdLSwgygZ/CZVxSUMig82+a8cCF/Dw=";
+      };
     };
-    "1.43" = {
-      aarch64-darwin = "sha256-rt9LEz6Dp7bkrqtP9sgkvxY8tG3hqewD3vBXmJ5KMGk=";
-      x86_64-linux = "sha256-GhMnfjKNJXpVqT1CZE0Zyp4+NXJG41sUxwHye9DGPt0=";
-      aarch64-linux = "sha256-7YSPEaVErLIpDEqHj3oRTBzcP9L8BBzz6wWxZIet9jk=";
-      x86_64-darwin = "sha256-qIx8NDM2SIaBOBkxd4jp1oo/kl2lBzEgXz4yqjRioJg=";
-      x86_64-windows = "sha256-XX593OJMboZYmvdLSwgygZ/CZVxSUMig82+a8cCF/Dw=";
-    };
-  };
-  # The system string is inverted, and each bundle has a different hash
-  releaseSystem = systemMapping."${system}";
-  releaseHash = versionMapping."${version}"."${system}";
-in
-  stdenv.mkDerivation rec {
+    # The system string is inverted, and each bundle has a different hash
+    releaseSystem = systemMapping."${system}";
+    releaseHash = versionMapping."${version}"."${system}";
+  in stdenv.mkDerivation rec {
     pname = "solana-platform-tools";
     inherit version;
 
     src = fetchzip {
-      url = "https://github.com/anza-xyz/platform-tools/releases/download/v${version}/platform-tools-${releaseSystem}.tar.bz2";
+      url =
+        "https://github.com/anza-xyz/platform-tools/releases/download/v${version}/platform-tools-${releaseSystem}.tar.bz2";
       hash = releaseHash;
       stripRoot = false;
     };
@@ -57,19 +45,17 @@ in
     # https://github.com/NixOS/nixpkgs/issues/380196#issuecomment-2646189651
     dontCheckForBrokenSymlinks = true;
 
-    nativeBuildInputs = lib.optionals stdenv.isLinux [autoPatchelfHook];
+    nativeBuildInputs = lib.optionals stdenv.isLinux [ autoPatchelfHook ];
 
-    buildInputs =
-      [
-        # Auto patching
-        libedit
-        zlib
-        stdenv.cc.cc
-        libclang.lib
-        xz
-        python310
-      ]
-      ++ lib.optionals stdenv.isLinux [udev];
+    buildInputs = [
+      # Auto patching
+      libedit
+      zlib
+      stdenv.cc.cc
+      libclang.lib
+      xz
+      python310
+    ] ++ lib.optionals stdenv.isLinux [ udev ];
 
     installPhase = ''
       platformtools=$out/bin/platform-tools-sdk/sbf/dependencies/platform-tools
@@ -96,7 +82,7 @@ in
     '';
 
     # We need to preserve metadata in .rlib, which might get stripped on macOS. See https://github.com/NixOS/nixpkgs/issues/218712
-    stripExclude = ["*.rlib"];
+    stripExclude = [ "*.rlib" ];
 
     meta = with lib; {
       description = "Solana Platform Tools";
@@ -104,7 +90,5 @@ in
       platforms = platforms.aarch64 ++ platforms.unix;
     };
 
-    passthru = {
-      otherVersions = builtins.attrNames versionMapping;
-    };
+    passthru = { otherVersions = builtins.attrNames versionMapping; };
   })
