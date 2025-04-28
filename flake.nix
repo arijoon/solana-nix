@@ -13,12 +13,14 @@
   outputs =
     inputs@{
       self,
-      nixpkgs,
       flake-parts,
-      rust-overlay,
       crane,
+      ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [
+        inputs.flake-parts.flakeModules.easyOverlay
+      ];
       systems = [
         "x86_64-linux"
         "aarch64-linux"
@@ -35,35 +37,48 @@
           system,
           ...
         }:
-        with import nixpkgs {
-          inherit system;
-          overlays = [ rust-overlay.overlays.default ];
-        };
         let
-          solana-source = callPackage (import ./solana-source.nix) { };
-          solana-platform-tools = callPackage (import ./solana-platform-tools.nix) {
+          solana-source = pkgs.callPackage (import ./solana-source.nix) { };
+          solana-platform-tools = pkgs.callPackage (import ./solana-platform-tools.nix) {
             inherit solana-source;
           };
-          solana-rust = callPackage (import ./solana-rust.nix) {
+          solana-rust = pkgs.callPackage (import ./solana-rust.nix) {
             inherit solana-platform-tools;
           };
-          solana-cli = callPackage (import ./solana-cli.nix) {
+          solana-cli = pkgs.callPackage (import ./solana-cli.nix) {
             inherit solana-platform-tools solana-source;
             crane = crane.mkLib pkgs;
           };
-          anchor-cli = callPackage (import ./anchor-cli.nix) {
+          anchor-cli = pkgs.callPackage (import ./anchor-cli.nix) {
             inherit solana-platform-tools;
             crane = crane.mkLib pkgs;
           };
         in
         {
-          devShells.default = mkShell {
+          overlayAttrs = {
+            inherit (config.packages)
+              solana-source
+              solana-platform-tools
+              solana-rust
+              solana-cli
+              anchor-cli
+              ;
+          };
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [
+              inputs.rust-overlay.overlays.default
+              self.overlays.default
+            ];
+          };
+
+          devShells.default = pkgs.mkShell {
             packages = [
               anchor-cli
               solana-cli
               solana-rust
-              yarn
-              nodejs
+              pkgs.yarn
+              pkgs.nodejs
             ];
           };
 
