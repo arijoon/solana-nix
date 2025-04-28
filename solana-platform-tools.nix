@@ -1,6 +1,20 @@
-({ stdenv, autoPatchelfHook, criterion, fetchzip, lib, libclang, libedit
-  , python310, solana-source, udev, xz, zlib, system ? builtins.currentSystem
-  , version ? "1.45", }:
+(
+  {
+    stdenv,
+    autoPatchelfHook,
+    criterion,
+    fetchzip,
+    lib,
+    libclang,
+    libedit,
+    python310,
+    solana-source,
+    udev,
+    xz,
+    zlib,
+    system ? builtins.currentSystem,
+    version ? "1.45",
+  }:
   let
     systemMapping = {
       x86_64-linux = "linux-x86_64";
@@ -29,13 +43,13 @@
     # The system string is inverted, and each bundle has a different hash
     releaseSystem = systemMapping."${system}";
     releaseHash = versionMapping."${version}"."${system}";
-  in stdenv.mkDerivation rec {
+  in
+  stdenv.mkDerivation rec {
     pname = "solana-platform-tools";
     inherit version;
 
     src = fetchzip {
-      url =
-        "https://github.com/anza-xyz/platform-tools/releases/download/v${version}/platform-tools-${releaseSystem}.tar.bz2";
+      url = "https://github.com/anza-xyz/platform-tools/releases/download/v${version}/platform-tools-${releaseSystem}.tar.bz2";
       hash = releaseHash;
       stripRoot = false;
     };
@@ -90,5 +104,8 @@
       platforms = platforms.aarch64 ++ platforms.unix;
     };
 
-    passthru = { otherVersions = builtins.attrNames versionMapping; };
-  })
+    passthru = {
+      otherVersions = builtins.attrNames versionMapping;
+    };
+  }
+)

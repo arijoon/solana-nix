@@ -1,5 +1,17 @@
-{ stdenv, darwin, fetchFromGitHub, lib, pkg-config, protobuf, makeWrapper
-, solana-platform-tools, rust-bin, udev, crane, version ? "0.31.0", }:
+{
+  stdenv,
+  darwin,
+  fetchFromGitHub,
+  lib,
+  pkg-config,
+  protobuf,
+  makeWrapper,
+  solana-platform-tools,
+  rust-bin,
+  udev,
+  crane,
+  version ? "0.31.0",
+}:
 let
   pname = "anchor-cli";
 
@@ -33,7 +45,11 @@ let
     src = originalSrc;
 
     # Apply the patch
-    phases = [ "unpackPhase" "patchPhase" "installPhase" ];
+    phases = [
+      "unpackPhase"
+      "patchPhase"
+      "installPhase"
+    ];
     patches = versionDeps.patches;
 
     # Install the patched source as an output
@@ -51,26 +67,39 @@ let
     strictDeps = true;
     doCheck = false;
 
-    nativeBuildInputs = [ protobuf pkg-config makeWrapper ];
-    buildInputs = [ ] ++ lib.optionals stdenv.isLinux [ udev ]
-      ++ lib.optional stdenv.isDarwin
-      [ darwin.apple_sdk.frameworks.CoreFoundation ];
+    nativeBuildInputs = [
+      protobuf
+      pkg-config
+      makeWrapper
+    ];
+    buildInputs =
+      [ ]
+      ++ lib.optionals stdenv.isLinux [ udev ]
+      ++ lib.optional stdenv.isDarwin [ darwin.apple_sdk.frameworks.CoreFoundation ];
   };
 
   cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-in craneLib.buildPackage (commonArgs // {
-  inherit cargoArtifacts;
+in
+craneLib.buildPackage (
+  commonArgs
+  // {
+    inherit cargoArtifacts;
 
-  # Ensure anchor has access to Solana's cargo and rust binaries
-  postInstall = ''
-    rust=${versionDeps.platform-tools}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
-    wrapProgram $out/bin/anchor \
-      --prefix PATH : "$rust"
-  '';
+    # Ensure anchor has access to Solana's cargo and rust binaries
+    postInstall = ''
+      rust=${versionDeps.platform-tools}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
+      wrapProgram $out/bin/anchor \
+        --prefix PATH : "$rust"
+    '';
 
-  cargoExtraArgs = "-p ${pname}";
+    cargoExtraArgs = "-p ${pname}";
 
-  meta = { description = "Anchor cli"; };
+    meta = {
+      description = "Anchor cli";
+    };
 
-  passthru = { otherVersions = builtins.attrNames versionsDeps; };
-})
+    passthru = {
+      otherVersions = builtins.attrNames versionsDeps;
+    };
+  }
+)
