@@ -79,6 +79,7 @@
               solana-rust
               pkgs.yarn
               pkgs.nodejs
+              pkgs.nixfmt-rfc-style
             ];
           };
 

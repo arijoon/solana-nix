@@ -139,6 +139,7 @@ craneLib.buildPackage (
     '';
 
     meta = with lib; {
+      mainProgram = "solana";
       description = "Web-Scale Blockchain for fast, secure, scalable, decentralized apps and marketplaces. ";
       homepage = "https://solana.com";
       license = licenses.asl20;

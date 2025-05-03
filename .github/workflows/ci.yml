@@ -27,6 +27,12 @@ jobs:
           echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
           sudo systemctl restart nix-daemon || true
 
+      - name: Enable Cachix
+        uses: cachix/cachix-action@v14
+          with:
+            name: solana-nix
+            authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
       - name: Test Solana CLI
         run: |
           nix run .#solana-cli -- --version

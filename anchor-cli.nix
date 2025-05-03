@@ -95,6 +95,7 @@ craneLib.buildPackage (
     cargoExtraArgs = "-p ${pname}";
 
     meta = {
+      mainProgram = "anchor";
       description = "Anchor cli";
     };
 
