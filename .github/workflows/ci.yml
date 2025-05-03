@@ -35,7 +35,7 @@ jobs:
 
       - name: Build Solana CLI
         run: |
-          nix build --no-link --print-out-paths .#solana-cli | cachix push solana-nix
+          nix build --no-link --print-out-paths .#solana-cli | CACHIX_AUTH_TOKEN='${{ secrets.CACHIX_AUTH_TOKEN }}' cachix push solana-nix
 
       - name: Test Solana CLI
         run: |
@@ -43,7 +43,7 @@ jobs:
 
       - name: Build Anchor CLI
         run: |
-          nix build --no-link --print-out-paths .#anchor-cli | cachix push solana-nix
+          nix build --no-link --print-out-paths .#anchor-cli | CACHIX_AUTH_TOKEN='${{ secrets.CACHIX_AUTH_TOKEN }}' cachix push solana-nix
 
       - name: Test Anchor CLI
         run: |
