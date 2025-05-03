@@ -54,7 +54,7 @@
             crane = crane.mkLib pkgs;
           };
           anchor-test = pkgs.callPackage ./anchor-test.nix {
-            inherit anchor-cli;
+            inherit anchor-cli solana-cli solana-rust;
           };
         in
         {

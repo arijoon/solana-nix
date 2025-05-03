@@ -40,3 +40,7 @@ jobs:
       - name: Test Anchor CLI
         run: |
           nix run .#anchor-cli -- --version
+
+      - name: Test Anchor Program
+        run: |
+          nix build .#anchor-test -L --impure --option sandbox false
