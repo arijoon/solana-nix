@@ -28,10 +28,10 @@ jobs:
           sudo systemctl restart nix-daemon || true
 
       - name: Enable Cachix
-        uses: cachix/cachix-action@v14
-          with:
-            name: solana-nix
-            authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+        uses: cachix/cachix-action@v16
+        with:
+          name: solana-nix
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - name: Test Solana CLI
         run: |
