@@ -1,10 +1,16 @@
 # Solana Nix
 
-Solana nix setup for compiling programs.
+Solana and Anchor nix setup for compiling programs.
 
-This is not the latest solana or anchor, ensure your project matches the packaged solana version:
+## Dev shell
 
-for example to move from 1.18.12 in your initialised anchor project
+`anchor` and `solana` binaries are available in the dev shell
+
+## Rust nightly
+
+Unfortunately anchor depends on nightly rust complier (a very unstable and common practice in rust projects)
+
+## Changing solana version
 
 ```sh
 cargo update -p solana-program@1.18.12 --precise 1.17.28

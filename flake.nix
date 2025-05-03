@@ -5,7 +5,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts/f4330d22f1c5d2ba72d3d22df5597d123fdb60a9";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     rust-overlay = {
-      url = "github:oxalica/rust-overlay/954582a766a50ebef5695a9616c93b5386418c08";
+      url = "github:oxalica/rust-overlay/bd32e88bef6da0e021a42fb4120a8df2150e9b8c";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     crane.url = "github:ipetkov/crane";
@@ -53,6 +53,9 @@
             inherit solana-platform-tools;
             crane = crane.mkLib pkgs;
           };
+          anchor-test = pkgs.callPackage ./anchor-test.nix {
+            inherit anchor-cli;
+          };
         in
         {
           overlayAttrs = {
@@ -62,6 +65,7 @@
               solana-rust
               solana-cli
               anchor-cli
+              anchor-test
               ;
           };
           _module.args.pkgs = import inputs.nixpkgs {
@@ -89,6 +93,7 @@
               solana-cli
               solana-platform-tools
               solana-rust
+              anchor-test
               ;
           };
         };
