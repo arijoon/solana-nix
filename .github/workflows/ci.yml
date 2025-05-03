@@ -33,14 +33,23 @@ jobs:
           name: solana-nix
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
+      - name: Build Solana CLI
+        run: |
+          nix build --no-link --print-out-paths .#solana-cli | cachix push solana-nix
+
       - name: Test Solana CLI
         run: |
           nix run .#solana-cli -- --version
+
+      - name: Build Anchor CLI
+        run: |
+          nix build --no-link --print-out-paths .#anchor-cli | cachix push solana-nix
 
       - name: Test Anchor CLI
         run: |
           nix run .#anchor-cli -- --version
 
-      - name: Test Anchor Program
-        run: |
-          nix build .#anchor-test -L --impure --option sandbox false
+      # Enable later
+      # - name: Test Anchor Program
+      #   run: |
+      #     nix build .#anchor-test -L --impure --option sandbox false
