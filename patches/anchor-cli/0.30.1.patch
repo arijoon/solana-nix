@@ -114,31 +114,18 @@ index 9befe845..7a9ae066 100644
          }
      }
 diff --git a/idl/src/build.rs b/idl/src/build.rs
-index 96dc3db2..d28a34b5 100644
+index 96dc3db2..02d754c9 100644
 --- a/idl/src/build.rs
 +++ b/idl/src/build.rs
-@@ -60,16 +60,14 @@ pub fn build_idl(
- 
- /// Build IDL.
- fn build(program_path: &Path, resolution: bool, skip_lint: bool, no_docs: bool) -> Result<Idl> {
--    // `nightly` toolchain is currently required for building the IDL.
--    let toolchain = std::env::var("RUSTUP_TOOLCHAIN")
--        .map(|toolchain| format!("+{}", toolchain))
--        .unwrap_or_else(|_| "+nightly".to_string());
-+    let mut command = Command::new("cargo");
+@@ -65,8 +65,6 @@ fn build(program_path: &Path, resolution: bool, skip_lint: bool, no_docs: bool)
+         .map(|toolchain| format!("+{}", toolchain))
+         .unwrap_or_else(|_| "+nightly".to_string());
  
 -    install_toolchain_if_needed(&toolchain)?;
-+    if let Ok(toolchain) = std::env::var("RUSTUP_TOOLCHAIN") {
-+        command.arg(&format!("+{}", toolchain));
-+    }
- 
--    let output = Command::new("cargo")
-+    let output = command
+-
+     let output = Command::new("cargo")
          .args([
--            &toolchain,
-             "test",
-             "__anchor_private_print_idl",
-             "--features",
+             &toolchain,
 @@ -202,23 +200,6 @@ fn build(program_path: &Path, resolution: bool, skip_lint: bool, no_docs: bool)
      idl.ok_or_else(|| anyhow!("IDL doesn't exist"))
  }
