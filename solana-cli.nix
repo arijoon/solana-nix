@@ -6,7 +6,7 @@
   udev,
   protobuf,
   libcxx,
-  rocksdb_8_11,
+  rocksdb,
   pkg-config,
   makeWrapper,
   solana-platform-tools,
@@ -44,8 +44,8 @@ let
   version = solana-source.version;
   src = solana-source.src;
 
-  # Use Rust 1.84.1 as required by Agave
-  rust = rust-bin.stable."1.84.1".default;
+  # Use Rust 1.86.0 as required by Agave
+  rust = rust-bin.stable."1.86.0".default;
   rustPlatform = makeRustPlatform {
     cargo = rust;
     rustc = rust;
@@ -98,8 +98,8 @@ let
     NIX_OUTPATH_USED_AS_RANDOM_SEED = "aaaaaaaaaa";
 
     # Used by build.rs in the rocksdb-sys crate
-    ROCKSDB_LIB_DIR = "${rocksdb_8_11}/lib";
-    ROCKSDB_INCLUDE_DIR = "${rocksdb_8_11}/include";
+    ROCKSDB_LIB_DIR = "${rocksdb}/lib";
+    ROCKSDB_INCLUDE_DIR = "${rocksdb}/include";
 
     # For darwin systems
     CPPFLAGS = lib.optionals stdenv.isDarwin "-isystem ${lib.getDev libcxx}/include/c++/v1";
