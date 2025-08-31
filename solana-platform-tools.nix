@@ -6,6 +6,7 @@
   lib,
   libclang,
   libedit,
+  openssl,
   python310,
   solana-source,
   udev,
@@ -75,7 +76,7 @@ stdenv.mkDerivation rec {
     libclang.lib
     xz
     python310
-  ] ++ lib.optionals stdenv.isLinux [ udev ];
+  ] ++ lib.optionals stdenv.isLinux [ openssl udev ];
 
   installPhase = ''
     platformtools=$out/bin/platform-tools-sdk/sbf/dependencies/platform-tools
