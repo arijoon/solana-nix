@@ -6,13 +6,14 @@
   lib,
   libclang,
   libedit,
+  openssl,
   python310,
   solana-source,
   udev,
   xz,
   zlib,
   system ? builtins.currentSystem,
-  version ? "1.45",
+  version ? "1.48",
 }:
 let
   systemMapping = {
@@ -24,6 +25,13 @@ let
   };
 
   versionMapping = {
+    "1.48" = {
+      x86_64-linux = "sha256-vHeOPs7B7WptUJ/mVvyt7ue+MqfqAsbwAHM+xlN/tgQ=";
+      aarch64-linux = "sha256-i3I9pwa+DyMJINFr+IucwytzEHdiRZU6r7xWHzppuR4=";
+      x86_64-darwin = "sha256-bXV4S8JeM4RJ7D9u+ruwtNFJ9aq01cFw80sprxB+Xng=";
+      aarch64-darwin = "sha256-ViXRoGlfn0aduNaZgsiXTcSIZO560DmFF5+kh3kYNIA=";
+      x86_64-windows = "sha256-hEVs9TPLX2YY2SBwt8qE8b700yznC71NHszz/zXdpZQ=";
+    };
     "1.45" = {
       x86_64-linux = "sha256-QGm7mOd3UnssYhPt8RSSRiS5LiddkXuDtWuakpak0Y0=";
       aarch64-linux = "sha256-UzOekFBdjtHJzzytmkQETd6Mrb+cdAsbZBA0kzc75Ws=";
@@ -68,7 +76,7 @@ stdenv.mkDerivation rec {
     libclang.lib
     xz
     python310
-  ] ++ lib.optionals stdenv.isLinux [ udev ];
+  ] ++ lib.optionals stdenv.isLinux [ openssl udev ];
 
   installPhase = ''
     platformtools=$out/bin/platform-tools-sdk/sbf/dependencies/platform-tools
@@ -91,7 +99,7 @@ stdenv.mkDerivation rec {
 
   # A bit ugly, but liblldb.so uses libedit.so.2 and nix provides libedit.so
   postFixup = lib.optionals stdenv.isLinux ''
-    patchelf --replace-needed libedit.so.2 libedit.so $out/bin/platform-tools-sdk/sbf/dependencies/platform-tools/llvm/lib/liblldb.so.18.1.7-rust-dev
+    patchelf --replace-needed libedit.so.2 libedit.so $out/bin/platform-tools-sdk/sbf/dependencies/platform-tools/llvm/lib/liblldb.so.19.1.7-rust-dev
   '';
 
   # We need to preserve metadata in .rlib, which might get stripped on macOS. See https://github.com/NixOS/nixpkgs/issues/218712

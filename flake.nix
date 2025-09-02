@@ -1,11 +1,11 @@
 {
   description = "Solana development setup with Nix.";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/8b27c1239e5c421a2bbc2c65d52e4a6fbf2ff296";
+    nixpkgs.url = "github:nixos/nixpkgs/11cb3517b3af6af300dd6c055aeda73c9bf52c48";
     flake-parts.url = "github:hercules-ci/flake-parts/f4330d22f1c5d2ba72d3d22df5597d123fdb60a9";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     rust-overlay = {
-      url = "github:oxalica/rust-overlay/bd32e88bef6da0e021a42fb4120a8df2150e9b8c";
+      url = "github:oxalica/rust-overlay/f46d294b87ebb9f7124f1ce13aa2a5f5acc0f3eb";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     crane.url = "github:ipetkov/crane";
