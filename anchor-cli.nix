@@ -10,31 +10,37 @@
   rust-bin,
   udev,
   crane,
-  runCommand,
+  writeShellScriptBin,
   version ? "0.31.1",
 }:
 let
   pname = "anchor-cli";
 
+  # Anchor IDL generation makes use of rust-nightly
+  # therefore we want to expose it to the environment to be used
+  # Due to https://github.com/solana-foundation/anchor/pull/3663
+  # latest nightly is always preferred when possible, since breakage may occur
+  # due to differing dependency versions as well
   versionsDeps = {
     "0.31.1" = {
       hash = "sha256-c+UybdZCFL40TNvxn0PHR1ch7VPhhJFDSIScetRpS3o=";
-      # Unfortunately dependency on nightly compiler seems to be common
-      # in rust projects
-      rust-nightly = rust-bin.nightly."2025-04-21".minimal;
       rust = rust-bin.stable."1.85.0".default;
+      rust-nightly = rust-bin.nightly.latest.default;
       platform-tools = solana-platform-tools.override { version = "1.45"; };
       patches = [ ./patches/anchor-cli/0.31.1.patch ];
     };
     "0.31.0" = {
       hash = "sha256-CaBVdp7RPVmzzEiVazjpDLJxEkIgy1BHCwdH2mYLbGM=";
       rust = rust-bin.stable."1.85.0".default;
+      rust-nightly = rust-bin.nightly.latest.default;
       platform-tools = solana-platform-tools.override { version = "1.45"; };
       patches = [ ./patches/anchor-cli/0.31.0.patch ];
     };
     "0.30.1" = {
       hash = "sha256-3fLYTJDVCJdi6o0Zd+hb9jcPDKm4M4NzpZ8EUVW/GVw=";
       rust = rust-bin.stable."1.78.0".default;
+      # anchor-syn v0.30.1 still uses the old API
+      rust-nightly = rust-bin.nightly."2025-04-15".default;
       platform-tools = solana-platform-tools.override { version = "1.43"; };
       patches = [ ./patches/anchor-cli/0.30.1.patch ];
     };
@@ -89,36 +95,38 @@ let
   };
 
   cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+  # We create a small cargo shim to dispatch to a compatible nightly version when necessary
+  cargoShim = writeShellScriptBin "cargo" ''
+    # Check that required env variables are set
+    if [[ -z "$_NIX_SUPPORT_STABLE_TOOLCHAIN" || -z "$_NIX_SUPPORT_NIGHTLY_TOOLCHAIN" ]]; then
+      echo "Error: Both _NIX_SUPPORT_STABLE_TOOLCHAIN and _NIX_SUPPORT_NIGHTLY_TOOLCHAIN environment variables must be set." >&2
+      exit 1
+    fi
+
+    if [[ "$1" == "+nightly" ]]; then
+      # Shift off +nightly and pass through all remaining args
+      shift
+      export PATH="$_NIX_SUPPORT_NIGHTLY_TOOLCHAIN":$PATH
+      exec cargo "$@"
+    else
+      export PATH="$_NIX_SUPPORT_STABLE_TOOLCHAIN":$PATH
+      exec cargo "$@"
+    fi
+  '';
 in
 craneLib.buildPackage (
   commonArgs
   // {
     inherit cargoArtifacts;
 
-    # Ensure anchor has access to Solana's cargo and rust binaries
-    postInstall = let 
-      # Due to th way anchor is calling cargo if its not wrapped
-      # with its own toolchain, it'll access solana rust compiler instead
-      # hence the nightly entry points must be wrapped with the nightly bins
-      # to guarantee correct usage
-      # In this case we've limited the nightly bin access to `cargo`
-      cargo-nightly = runCommand "cargo-nightly" {
-        nativeBuildInputs = [ makeWrapper ];
-      } ''
-        mkdir -p $out/bin
-
-        ln -s ${versionDeps.rust-nightly}/bin/cargo $out/bin/cargo
-
-        # Wrap cargo nightly so it uses the nightly toolchain only
-        wrapProgram $out/bin/cargo \
-          --prefix PATH : "${versionDeps.rust-nightly}/bin"
-      ''
-    ;
-    in 
-    ''
+    # Ensure anchor has access to Solana's rust binaries and our cargo shim with nightly
+    postInstall = ''
       rust=${versionDeps.platform-tools}/bin/platform-tools-sdk/sbf/dependencies/platform-tools/rust/bin
       wrapProgram $out/bin/anchor \
-        --prefix PATH : "$rust" ${if versionDeps ? rust-nightly then "--set RUST_NIGHTLY_BIN \"${cargo-nightly}/bin\"" else ""}
+        --prefix PATH : "${cargoShim}/bin" \
+        --set _NIX_SUPPORT_STABLE_TOOLCHAIN "$rust" \
+        --set _NIX_SUPPORT_NIGHTLY_TOOLCHAIN "${versionDeps.rust-nightly}/bin"
     '';
 
     cargoExtraArgs = "-p ${pname}";
@@ -130,6 +138,7 @@ craneLib.buildPackage (
 
     passthru = {
       otherVersions = builtins.attrNames versionsDeps;
+      rustNightly = versionDeps.rust-nightly._version;
     };
   }
 )
