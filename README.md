@@ -1,3 +1,5 @@
+
+
 # Solana Nix
 
 Solana and Anchor nix setup for compiling programs.
@@ -8,7 +10,7 @@ Solana and Anchor nix setup for compiling programs.
 
 ## Rust nightly
 
-Unfortunately anchor depends on nightly rust complier (a very unstable and common practice in rust projects)
+Unfortunately anchor depends on nightly rust compiler (a very unstable and common practice in rust projects)
 
 ## Changing solana version
 
